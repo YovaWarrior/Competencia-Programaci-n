@@ -1,0 +1,46 @@
+* [33meaba228[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmaster[m[33m, [m[1;31morigin/master[m[33m)[m  Actualizacion del proyecto en errores
+*   [33me69f052[m Merge branch 'master' of https://github.com/YovaWarrior/Competencia-Programaci-n
+[32m|[m[33m\[m  
+[32m|[m *   [33madc6c7c[m Merge branch 'master' of https://github.com/YovaWarrior/Competencia-Programaci-n
+[32m|[m [34m|[m[35m\[m  
+[32m|[m * [35m|[m [33m94b4291[m Arreglo de Metodo de Pago
+[32m|[m * [35m|[m [33m88cb4f3[m Agregando Vistas Del Uso de Bicicletas
+* [35m|[m [35m|[m [33m8a609ad[m  Actualizacion de modelo estacion
+[35m|[m [35m|[m[35m/[m  
+[35m|[m[35m/[m[35m|[m   
+* [35m|[m [33m0d7487a[m  Completar controladores principales y rutas
+[35m|[m[35m/[m  
+*   [33me532cb9[m Finalizando merge con cambios locales y remotos
+[36m|[m[1;31m\[m  
+[36m|[m * [33m0b8ac2c[m Creacion de apartado de las rutas de bicicleta
+[36m|[m * [33m8cfd4da[m Estructura del Proyecto Finalizada
+[36m|[m * [33m309fb70[m Creacion de Sistema de Reportes
+* [1;31m|[m [33m8a88667[m Arreglando detalles funcioanles y esteticos del aparto de membresia y pago
+[1;31m|[m[1;31m/[m  
+*   [33mcf84937[m Merge branch 'master' of https://github.com/YovaWarrior/Competencia-Programaci-n
+[1;32m|[m[1;33m\[m  
+[1;32m|[m * [33m3c930e2[m Vista del pago de la membresia
+* [1;33m|[m [33m4b3f774[m Creacion de vistas restantes y creacion e implementacion del mapa
+[1;33m|[m[1;33m/[m  
+*   [33m748c2d4[m Merge cambios de origin/master
+[1;34m|[m[1;35m\[m  
+[1;34m|[m * [33m0259cab[m Crecacion de CSS, Javascript y mapas interactivos completos
+* [1;35m|[m [33m447b42d[m feat: vistas frontend completas con diseño EcoBici
+[1;35m|[m[1;35m/[m  
+* [33m02ac8f7[m Arreglando problema de migracion
+*   [33m2233097[m Merge branch 'master' of https://github.com/YovaWarrior/Competencia-Programaci-n
+[1;36m|[m[31m\[m  
+[1;36m|[m *   [33m79686f1[m Merge branch 'master' of https://github.com/YovaWarrior/Competencia-Programaci-n
+[1;36m|[m [32m|[m[33m\[m  
+[1;36m|[m [32m|[m * [33mc14d84c[m Agregando Funcionalidad de los Controladores
+[1;36m|[m [32m|[m *   [33mb6db961[m Merge branch 'master' of https://github.com/YovaWarrior/Competencia-Programaci-n
+[1;36m|[m [32m|[m [34m|[m[35m\[m  
+[1;36m|[m [32m|[m * [35m|[m [33m1d761cf[m creando los controladores
+[1;36m|[m * [35m|[m [35m|[m [33md59b4d0[m CREACION DE MODELOS Y SU RESPECTIVO CODIGO
+[1;36m|[m [35m|[m[35m/[m [35m/[m  
+* [35m|[m [35m/[m [33m1d38a64[m feat: rutas completas y middleware de seguridad
+[35m|[m [35m|[m[35m/[m  
+[35m|[m[35m/[m[35m|[m   
+* [35m|[m [33md9bce8f[m seeders con datos realistas de Puerto Barrios
+[35m|[m[35m/[m  
+* [33m95d584e[m configuración inicial Laravel para EcoBici Puerto Barrios
