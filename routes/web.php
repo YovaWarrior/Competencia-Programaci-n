@@ -57,7 +57,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     
     // Perfil
     Route::get('/profile', [AuthController::class, 'profile'])->name('profile');
-    Route::patch('/profile', [AuthController::class, 'updateProfile'])->name('profile.update');
+    Route::put('/profile', [AuthController::class, 'updateProfile'])->name('profile.update');
     
     // Membresías
     Route::prefix('membresias')->name('membresias.')->group(function () {

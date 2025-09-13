@@ -79,4 +79,12 @@ class User extends Authenticatable
         return $membresia->membresia->tipo_bicicleta === 'ambas' || 
                $membresia->membresia->tipo_bicicleta === $tipo;
     }
+
+    public function getFotoUrlAttribute()
+    {
+        if ($this->foto && $this->foto !== 'images/default-avatar.svg') {
+            return asset('storage/' . $this->foto);
+        }
+        return asset($this->foto ?: 'images/default-avatar.svg');
+    }
 }
