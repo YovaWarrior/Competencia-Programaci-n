@@ -126,6 +126,11 @@
                             </a>
                         </li>
                         <li class="nav-item">
+                            <a class="nav-link" href="{{ route('reportes.index') }}">
+                                <i class="fas fa-exclamation-triangle me-1"></i> Reportar Daños
+                            </a>
+                        </li>
+                        <li class="nav-item">
                             <a class="nav-link" href="{{ route('bicicletas.seleccionar') }}">
                                 <i class="fas fa-bicycle me-1"></i> Usar Bicicleta
                             </a>

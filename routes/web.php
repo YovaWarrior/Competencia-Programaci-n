@@ -106,14 +106,22 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/calcular-ruta', [MapaController::class, 'calcularRuta'])->name('calcular-ruta');
     });
     
+    // Reportes de daños (usuarios)
+    Route::prefix('reportes')->name('reportes.')->group(function () {
+        Route::get('/', [App\Http\Controllers\ReporteDanoController::class, 'index'])->name('index');
+        Route::get('/crear', [App\Http\Controllers\ReporteDanoController::class, 'create'])->name('create');
+        Route::post('/', [App\Http\Controllers\ReporteDanoController::class, 'store'])->name('store');
+        Route::get('/{reporte}', [App\Http\Controllers\ReporteDanoController::class, 'show'])->name('show');
+    });
+    
     // APIs para usuarios autenticados
     Route::prefix('api')->name('api.')->group(function () {
         Route::get('/mapa/rutas', [MapaController::class, 'rutasApi'])->name('mapa.rutas');
         Route::get('/usuario/estadisticas', [DashboardController::class, 'estadisticasUsuario'])->name('usuario.estadisticas');
     });
     
-    // Reportes (solo usuarios con membresía activa)
-    Route::prefix('reportes')->name('reportes.')->group(function () {
+    // Reportes estadísticos (solo usuarios con membresía activa)
+    Route::prefix('reportes-estadisticos')->name('reportes-estadisticos.')->group(function () {
         Route::get('/co2', [ReporteController::class, 'co2'])->name('co2');
         Route::get('/uso', [ReporteController::class, 'uso'])->name('uso');
         Route::get('/ingresos', [ReporteController::class, 'ingresos'])->name('ingresos');
