@@ -175,7 +175,7 @@ class UsoBicicletaController extends Controller
                 'estacion_actual_id' => $uso->estacion_inicio_id,
             ]);
 
-            // Restaurar capacidad de estación
+    
             $estacion = Estacion::find($uso->estacion_inicio_id);
             $estacion->decrement('capacidad_disponible');
 
