@@ -8,6 +8,8 @@ class ReporteDano extends Model
 {
     use HasFactory;
 
+    protected $table = 'reportes_danos';
+
     protected $fillable = [
         'user_id', 'bicicleta_id', 'tipo_dano', 'descripcion', 'severidad',
         'fotos', 'estado', 'fecha_reporte', 'fecha_resolucion', 'comentarios_tecnico'

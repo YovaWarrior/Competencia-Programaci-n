@@ -47,6 +47,16 @@
         .navbar {
             background: linear-gradient(90deg, var(--ecobici-azul) 0%, var(--ecobici-verde) 100%);
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+
+            /* Corrección para el dropdown */
+            position: relative;
+            z-index: 1100;
+        }
+        
+        /* Asegura que el dropdown se muestre por encima */
+        .navbar .dropdown-menu {
+            position: absolute !important;
+            z-index: 1150 !important;
         }
         
         .btn-primary {
@@ -224,7 +234,7 @@
         
         // Funciones básicas si no están cargadas
         window.EcoBici.mostrarNotificacion = window.EcoBici.mostrarNotificacion || function(mensaje, tipo = 'info', duracion = 5000) {
-            console.log(`${tipo.toUpperCase()}: ${mensaje}`);
+            console.log(${tipo.toUpperCase()}: ${mensaje});
         };
         
         window.EcoBici.usarBicicleta = window.EcoBici.usarBicicleta || function(bicicletaId, estacionId) {
@@ -232,7 +242,7 @@
             
             const form = document.createElement('form');
             form.method = 'POST';
-            form.action = `/bicicletas/${bicicletaId}/usar`;
+            form.action = /bicicletas/${bicicletaId}/usar;
             
             const csrfInput = document.createElement('input');
             csrfInput.type = 'hidden';

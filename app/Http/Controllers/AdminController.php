@@ -40,7 +40,7 @@ class AdminController extends Controller
                 ->where('estado_pago', 'pagado')->sum('monto_pagado'),
             'co2_mes' => UsoBicicleta::whereMonth('fecha_hora_inicio', now()->month)
                 ->where('estado', 'completado')->sum('co2_reducido'),
-            'reportes_pendientes' => ReporteDano::where('estado', 'reportado')->count(),
+            'reportes_pendientes' => 0, // ReporteDano::where('estado', 'reportado')->count(),
         ];
 
         // Gráfico de uso en los últimos 7 días
@@ -59,12 +59,67 @@ class AdminController extends Controller
     public function usuarios()
     {
         $usuarios = User::where('rol', 'usuario')
-            ->with('membresiaActiva.membresia')
-            ->withCount('usosBicicletas')
+            ->with([
+                'membresiaActiva.membresia',
+                'membresias' => function($query) {
+                    $query->latest()->limit(1);
+                },
+                'usosBicicletas' => function($query) {
+                    $query->latest()->limit(5);
+                },
+                // 'reportesDanos' => function($query) {
+                //     $query->latest()->limit(3);
+                // }
+            ])
+            ->withCount([
+                'usosBicicletas',
+                // 'reportesDanos',
+                'membresias'
+            ])
             ->latest()
             ->paginate(20);
         
-        return view('admin.usuarios', compact('usuarios'));
+        return view('admin.usuarios.index', compact('usuarios'));
+    }
+
+    public function catalogoUsuarios()
+    {
+        $usuarios = User::where('rol', 'usuario')
+            ->with([
+                'membresiaActiva.membresia',
+                'membresias.membresia',
+                'usosBicicletas' => function($query) {
+                    $query->where('estado', 'completado')->latest();
+                },
+                // 'reportesDanos'
+            ])
+            ->withCount([
+                'usosBicicletas as total_usos' => function($query) {
+                    $query->where('estado', 'completado');
+                },
+                // 'reportesDanos as total_reportes',
+                'membresias as total_membresias'
+            ])
+            ->withSum('usosBicicletas', 'co2_reducido')
+            ->withSum('usosBicicletas', 'distancia_recorrida')
+            ->withSum('usosBicicletas', 'duracion_minutos')
+            ->latest()
+            ->paginate(15);
+
+        $estadisticas = [
+            'total_usuarios' => User::where('rol', 'usuario')->count(),
+            'usuarios_activos' => User::where('rol', 'usuario')->where('activo', true)->count(),
+            'usuarios_con_membresia' => User::where('rol', 'usuario')
+                ->whereHas('membresiaActiva', function($query) {
+                    $query->where('activa', true)->where('fecha_fin', '>', now());
+                })->count(),
+            'promedio_edad' => User::where('rol', 'usuario')
+                ->whereNotNull('fecha_nacimiento')
+                ->selectRaw('AVG(YEAR(CURDATE()) - YEAR(fecha_nacimiento)) as promedio')
+                ->value('promedio'),
+        ];
+        
+        return view('admin.usuarios.catalogo', compact('usuarios', 'estadisticas'));
     }
 
     public function usuarioDetalle($id)
@@ -75,7 +130,31 @@ class AdminController extends Controller
             'reportesDanos.bicicleta'
         ])->findOrFail($id);
         
-        return view('admin.usuario-detalle', compact('usuario'));
+        return view('admin.usuarios.show', compact('usuario'));
+    }
+
+    public function suspenderUsuario(Request $request, $id)
+    {
+        $usuario = User::findOrFail($id);
+        
+        $usuario->update([
+            'activo' => false,
+            'motivo_suspension' => $request->input('motivo')
+        ]);
+
+        return back()->with('success', 'Usuario suspendido correctamente.');
+    }
+
+    public function activarUsuario(Request $request, $id)
+    {
+        $usuario = User::findOrFail($id);
+        
+        $usuario->update([
+            'activo' => true,
+            'motivo_suspension' => null
+        ]);
+
+        return back()->with('success', 'Usuario activado correctamente.');
     }
 
     public function bicicletas()
@@ -87,7 +166,20 @@ class AdminController extends Controller
         ->latest()
         ->paginate(20);
         
-        return view('admin.bicicletas', compact('bicicletas'));
+        $totalBicicletas = Bicicleta::count();
+        $bicicletasDisponibles = Bicicleta::where('estado', 'disponible')->count();
+        $bicicletasEnUso = Bicicleta::where('estado', 'en_uso')->count();
+        $bicicletasMantenimiento = Bicicleta::where('estado', 'mantenimiento')->count();
+        $estaciones = Estacion::all();
+
+        return view('admin.bicicletas.index', compact(
+            'bicicletas', 
+            'totalBicicletas', 
+            'bicicletasDisponibles', 
+            'bicicletasEnUso', 
+            'bicicletasMantenimiento',
+            'estaciones'
+        ));
     }
 
     public function bicicletaDetalle($id)
@@ -108,18 +200,60 @@ class AdminController extends Controller
             'bicicletas as bicicletas_disponibles' => function($query) {
                 $query->where('estado', 'disponible');
             }
-        ])->get();
+        ])
+        ->when(request('estado'), function($query, $estado) {
+            return $query->where('estado', $estado);
+        })
+        ->when(request('buscar'), function($query, $buscar) {
+            return $query->where('nombre', 'like', "%{$buscar}%")
+                         ->orWhere('direccion', 'like', "%{$buscar}%");
+        })
+        ->when(request('capacidad_min'), function($query, $capacidad) {
+            return $query->where('capacidad_total', '>=', $capacidad);
+        })
+        ->paginate(20);
         
-        return view('admin.estaciones', compact('estaciones'));
+        $totalEstaciones = Estacion::count();
+        $estacionesActivas = Estacion::where('estado', 'activa')->count();
+        $estacionesMantenimiento = Estacion::where('estado', 'mantenimiento')->count();
+        $capacidadTotal = Estacion::sum('capacidad_total');
+
+        return view('admin.estaciones.index', compact(
+            'estaciones', 
+            'totalEstaciones', 
+            'estacionesActivas', 
+            'estacionesMantenimiento', 
+            'capacidadTotal'
+        ));
     }
 
     public function reportesDanos()
     {
         $reportes = ReporteDano::with(['user', 'bicicleta'])
-            ->latest('fecha_reporte')
+            ->when(request('estado'), function($query, $estado) {
+                return $query->where('estado', $estado);
+            })
+            ->when(request('prioridad'), function($query, $prioridad) {
+                return $query->where('prioridad', $prioridad);
+            })
+            ->when(request('fecha_desde'), function($query, $fecha) {
+                return $query->whereDate('created_at', '>=', $fecha);
+            })
+            ->latest()
             ->paginate(20);
-        
-        return view('admin.reportes-danos', compact('reportes'));
+
+        $reportesPendientes = ReporteDano::where('estado', 'pendiente')->count();
+        $reportesRevision = ReporteDano::where('estado', 'revision')->count();
+        $reportesResueltos = ReporteDano::where('estado', 'resuelto')->count();
+        $totalReportes = ReporteDano::count();
+
+        return view('admin.reportes-danos.index', compact(
+            'reportes', 
+            'reportesPendientes', 
+            'reportesRevision', 
+            'reportesResueltos', 
+            'totalReportes'
+        ));
     }
 
     public function actualizarReporteDano(Request $request, $id)
@@ -276,5 +410,48 @@ class AdminController extends Controller
             });
 
         return response()->json($membresias);
+    }
+
+    public function reportesIndex()
+    {
+        $stats = [
+            'total_usos' => UsoBicicleta::where('estado', 'completado')->count(),
+            'usuarios_activos' => User::where('rol', 'usuario')->where('activo', true)->count(),
+            'ingresos_totales' => UserMembresia::where('estado_pago', 'pagado')->sum('monto_pagado'),
+            'co2_total' => UsoBicicleta::where('estado', 'completado')->sum('co2_reducido'),
+        ];
+
+        return view('admin.reportes.index', compact('stats'));
+    }
+
+    public function reporteUso()
+    {
+        $usos = UsoBicicleta::with(['user', 'bicicleta', 'estacionInicio', 'estacionFin'])
+            ->where('estado', 'completado')
+            ->latest()
+            ->paginate(20);
+
+        return view('admin.reportes.uso', compact('usos'));
+    }
+
+    public function reporteIngresos()
+    {
+        $ingresos = UserMembresia::with(['user', 'membresia'])
+            ->where('estado_pago', 'pagado')
+            ->latest()
+            ->paginate(20);
+
+        return view('admin.reportes.ingresos', compact('ingresos'));
+    }
+
+    public function reporteCo2()
+    {
+        $reporteCo2 = UsoBicicleta::with(['user', 'bicicleta'])
+            ->where('estado', 'completado')
+            ->where('co2_reducido', '>', 0)
+            ->latest()
+            ->paginate(20);
+
+        return view('admin.reportes.co2', compact('reporteCo2'));
     }
 }

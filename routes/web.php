@@ -127,7 +127,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 |--------------------------------------------------------------------------
 */
 
-Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['auth', App\Http\Middleware\AdminMiddleware::class])->prefix('admin')->name('admin.')->group(function () {
     
     // Dashboard administrativo
     Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
@@ -136,6 +136,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     // Gestión de usuarios
     Route::prefix('usuarios')->name('usuarios.')->group(function () {
         Route::get('/', [AdminController::class, 'usuarios'])->name('index');
+        Route::get('/catalogo', [AdminController::class, 'catalogoUsuarios'])->name('catalogo');
         Route::get('/{usuario}', [AdminController::class, 'usuarioDetalle'])->name('show');
         Route::post('/{usuario}/suspender', [AdminController::class, 'suspenderUsuario'])->name('suspender');
         Route::post('/{usuario}/activar', [AdminController::class, 'activarUsuario'])->name('activar');
@@ -186,12 +187,13 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     
     // Reportes administrativos
     Route::prefix('reportes')->name('reportes.')->group(function () {
-        Route::get('/uso', [ReporteController::class, 'uso'])->name('uso');
-        Route::get('/ingresos', [ReporteController::class, 'ingresos'])->name('ingresos');
-        Route::get('/co2', [ReporteController::class, 'co2'])->name('co2');
+        Route::get('/', [AdminController::class, 'reportesIndex'])->name('index');
+        Route::get('/uso', [AdminController::class, 'reporteUso'])->name('uso');
+        Route::get('/ingresos', [AdminController::class, 'reporteIngresos'])->name('ingresos');
+        Route::get('/co2', [AdminController::class, 'reporteCo2'])->name('co2');
         Route::get('/usuarios-activos', [AdminController::class, 'reporteUsuariosActivos'])->name('usuarios-activos');
         Route::get('/bicicletas-populares', [AdminController::class, 'reporteBicicletasPopulares'])->name('bicicletas-populares');
-        Route::get('/exportar/{tipo}', [ReporteController::class, 'exportar'])->name('exportar');
+        Route::get('/exportar/{tipo}', [AdminController::class, 'exportarReporte'])->name('exportar');
     });
     
     // Configuración del sistema
