@@ -454,4 +454,63 @@ class AdminController extends Controller
 
         return view('admin.reportes.co2', compact('reporteCo2'));
     }
+
+    public function reporteUsuariosActivos()
+    {
+        $usuariosActivos = User::where('rol', 'usuario')
+            ->where('activo', true)
+            ->whereHas('membresiaActiva', function($query) {
+                $query->where('activa', true)->where('fecha_fin', '>', now());
+            })
+            ->with([
+                'membresiaActiva.membresia',
+                'usosBicicletas' => function($query) {
+                    $query->where('estado', 'completado')->latest()->limit(5);
+                }
+            ])
+            ->withCount([
+                'usosBicicletas as total_usos' => function($query) {
+                    $query->where('estado', 'completado');
+                }
+            ])
+            ->withSum('usosBicicletas', 'co2_reducido')
+            ->withSum('usosBicicletas', 'duracion_minutos')
+            ->orderBy('total_usos', 'desc')
+            ->paginate(20);
+
+        $estadisticas = [
+            'total_usuarios_activos' => $usuariosActivos->total(),
+            'promedio_usos' => $usuariosActivos->avg('total_usos') ?? 0,
+            'total_co2_reducido' => $usuariosActivos->sum('uso_bicicletas_sum_co2_reducido') ?? 0,
+            'total_minutos' => $usuariosActivos->sum('uso_bicicletas_sum_duracion_minutos') ?? 0,
+        ];
+
+        return view('admin.reportes.usuarios-activos', compact('usuariosActivos', 'estadisticas'));
+    }
+
+    public function reporteBicicletasPopulares()
+    {
+        $bicicletasPopulares = Bicicleta::with(['estacionActual'])
+            ->withCount([
+                'usosBicicletas as total_usos' => function($query) {
+                    $query->where('estado', 'completado');
+                }
+            ])
+            ->withSum('usosBicicletas', 'duracion_minutos')
+            ->withSum('usosBicicletas', 'distancia_recorrida')
+            ->withSum('usosBicicletas', 'co2_reducido')
+            ->withAvg('usosBicicletas', 'calificacion')
+            ->having('total_usos', '>', 0)
+            ->orderBy('total_usos', 'desc')
+            ->paginate(20);
+
+        $estadisticas = [
+            'total_bicicletas_usadas' => Bicicleta::whereHas('usosBicicletas')->count(),
+            'promedio_usos' => $bicicletasPopulares->avg('total_usos') ?? 0,
+            'bicicleta_mas_popular' => $bicicletasPopulares->first(),
+            'total_distancia' => $bicicletasPopulares->sum('uso_bicicletas_sum_distancia_recorrida') ?? 0,
+        ];
+
+        return view('admin.reportes.bicicletas-populares', compact('bicicletasPopulares', 'estadisticas'));
+    }
 }

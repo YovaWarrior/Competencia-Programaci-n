@@ -98,11 +98,11 @@
                             </td>
                             <td>{{ $uso->estacionInicio->nombre ?? 'N/A' }}</td>
                             <td>{{ $uso->estacionFin->nombre ?? 'N/A' }}</td>
-                            <td>{{ $uso->fecha_inicio->format('d/m/Y H:i') }}</td>
-                            <td>{{ $uso->fecha_fin ? $uso->fecha_fin->format('d/m/Y H:i') : 'En curso' }}</td>
+                            <td>{{ $uso->fecha_hora_inicio ? $uso->fecha_hora_inicio->format('d/m/Y H:i') : 'N/A' }}</td>
+                            <td>{{ $uso->fecha_hora_fin ? $uso->fecha_hora_fin->format('d/m/Y H:i') : 'En curso' }}</td>
                             <td>
-                                @if($uso->fecha_fin)
-                                    {{ $uso->fecha_inicio->diffForHumans($uso->fecha_fin, true) }}
+                                @if($uso->fecha_hora_fin)
+                                    {{ $uso->fecha_hora_inicio->diffForHumans($uso->fecha_hora_fin, true) }}
                                 @else
                                     <span class="text-warning">En curso</span>
                                 @endif

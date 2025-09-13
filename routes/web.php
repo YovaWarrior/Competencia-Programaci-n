@@ -83,6 +83,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/{bicicleta}/usar', [BicicletaController::class, 'usar'])->name('usar');
         Route::get('/usar/{uso}', [BicicletaController::class, 'mostrarUso'])->name('mostrar-uso');
         Route::post('/usar/{uso}/finalizar', [BicicletaController::class, 'finalizarUso'])->name('finalizar-uso');
+        Route::get('/recorrido-actual', [BicicletaController::class, 'recorridoActual'])->name('recorrido-actual');
         Route::get('/historial', [BicicletaController::class, 'historial'])->name('historial');
         Route::get('/{bicicleta}/reportar-dano', [BicicletaController::class, 'reportarDano'])->name('reportar-dano');
         Route::post('/{bicicleta}/reportar-dano', [BicicletaController::class, 'guardarReporteDano'])->name('guardar-reporte-dano');

@@ -21,6 +21,12 @@ class BicicletaController extends Controller
             return redirect('/membresias')->with('error', 'Necesitas una membresía activa para usar las bicicletas.');
         }
 
+        // Verificar si ya tiene un recorrido en curso
+        $usoEnCurso = $user->usosBicicletas()->where('estado', 'en_curso')->first();
+        if ($usoEnCurso) {
+            return redirect('/bicicletas/usar/' . $usoEnCurso->id)->with('info', 'Ya tienes un recorrido en curso.');
+        }
+
         $membresia = $user->membresiaActiva;
         $tipoBicicleta = $membresia->membresia->tipo_bicicleta;
         
@@ -85,7 +91,7 @@ class BicicletaController extends Controller
         
         $estaciones = Estacion::where('estado', 'activa')->get();
         
-        return view('bicicletas.usar', compact('uso', 'estaciones'));
+        return view('bicicletas.mostrar-uso', compact('uso', 'estaciones'));
     }
 
     public function finalizarUso(Request $request, $usoId)
@@ -127,7 +133,7 @@ class BicicletaController extends Controller
         $uso->update([
             'fecha_hora_fin' => $fechaFin,
             'estacion_fin_id' => $validated['estacion_fin_id'],
-            'ruta_id' => $validated['ruta_id'],
+            'ruta_id' => $validated['ruta_id'] ?? null,
             'duracion_minutos' => $duracionMinutos,
             'minutos_incluidos_usados' => $minutosIncluidos,
             'minutos_extra' => $minutosExtra,
@@ -136,8 +142,8 @@ class BicicletaController extends Controller
             'co2_reducido' => $co2Reducido,
             'puntos_verdes_ganados' => $puntosGanados,
             'estado' => 'completado',
-            'calificacion' => $validated['calificacion'],
-            'comentarios' => $validated['comentarios'],
+            'calificacion' => $validated['calificacion'] ?? null,
+            'comentarios' => $validated['comentarios'] ?? null,
         ]);
 
         // Actualizar usuario
@@ -152,11 +158,22 @@ class BicicletaController extends Controller
         ]);
 
         // Incrementar uso de ruta si se especificó
-        if ($validated['ruta_id']) {
+        if (!empty($validated['ruta_id'])) {
             \App\Models\Ruta::find($validated['ruta_id'])->incrementarUso();
         }
 
         return redirect('/dashboard')->with('success', "¡Recorrido finalizado! Ganaste {$puntosGanados} puntos verdes.");
+    }
+
+    public function recorridoActual()
+    {
+        $user = Auth::user();
+        $usoEnCurso = $user->usosBicicletas()
+            ->with(['bicicleta', 'estacionInicio', 'userMembresia.membresia'])
+            ->where('estado', 'en_curso')
+            ->first();
+        
+        return view('bicicletas.recorrido-actual', compact('usoEnCurso'));
     }
 
     public function historial()
