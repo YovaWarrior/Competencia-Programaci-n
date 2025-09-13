@@ -156,11 +156,11 @@
         <div class="card stat-card bg-success text-white h-100">
             <div class="card-body text-center p-4">
                 <i class="fas fa-leaf fa-3x mb-3 opacity-75"></i>
-                <h2 class="mb-1" data-counter="{{ $stats['co2_reducido_total'] }}">{{ number_format($stats['co2_reducido_total'], 2) }}</h2>
+                <h2 class="mb-1" data-counter="{{ abs($stats['co2_reducido_total']) }}">{{ number_format(abs($stats['co2_reducido_total']), 2) }}</h2>
                 <p class="mb-0 text-white-75">kg CO₂ Reducido</p>
                 <small class="text-white-50">
                     <i class="fas fa-tree me-1"></i>
-                    {{ number_format($stats['co2_reducido_total'] / 21.8, 1) }} árboles equivalentes
+                    {{ number_format(abs($stats['co2_reducido_total']) / 21.8, 1) }} árboles equivalentes
                 </small>
             </div>
         </div>
@@ -170,11 +170,11 @@
         <div class="card stat-card bg-info text-white h-100">
             <div class="card-body text-center p-4">
                 <i class="fas fa-star fa-3x mb-3 opacity-75"></i>
-                <h2 class="mb-1" data-counter="{{ $stats['puntos_verdes'] }}">{{ number_format($stats['puntos_verdes']) }}</h2>
+                <h2 class="mb-1" data-counter="{{ abs($stats['puntos_verdes']) }}">{{ number_format(abs($stats['puntos_verdes'])) }}</h2>
                 <p class="mb-0 text-white-75">Puntos Verdes</p>
                 <small class="text-white-50">
                     <i class="fas fa-gift me-1"></i>
-                    {{ floor($stats['puntos_verdes'] / 50) }} recompensas disponibles
+                    {{ floor(abs($stats['puntos_verdes']) / 50) }} recompensas disponibles
                 </small>
             </div>
         </div>
@@ -438,7 +438,7 @@
                             <i class="fas fa-leaf fa-3x text-success"></i>
                         </div>
                         <div class="col">
-                            <h4 class="text-success mb-1">{{ number_format($stats['co2_reducido_total'], 2) }} kg CO₂</h4>
+                            <h4 class="text-success mb-1">{{ number_format(abs($stats['co2_reducido_total']), 2) }} kg CO₂</h4>
                             <p class="mb-0 small">Total de CO₂ que has evitado emitir</p>
                         </div>
                     </div>
@@ -448,13 +448,13 @@
                     <div class="col-6">
                         <div class="border-end">
                             <i class="fas fa-tree text-success fa-2x mb-2"></i>
-                            <h6 class="mb-1">{{ number_format($stats['co2_reducido_total'] / 21.8, 1) }}</h6>
+                            <h6 class="mb-1">{{ number_format(abs($stats['co2_reducido_total']) / 21.8, 1) }}</h6>
                             <small class="text-muted">Árboles plantados equivalente</small>
                         </div>
                     </div>
                     <div class="col-6">
                         <i class="fas fa-car text-danger fa-2x mb-2"></i>
-                        <h6 class="mb-1">{{ number_format($stats['co2_reducido_total'] / 4.6, 1) }}</h6>
+                        <h6 class="mb-1">{{ number_format(abs($stats['co2_reducido_total']) / 4.6, 1) }}</h6>
                         <small class="text-muted">Días de auto evitados</small>
                     </div>
                 </div>
@@ -465,7 +465,7 @@
                         Cada recorrido cuenta para un planeta más limpio
                     </p>
                     <div class="progress" style="height: 8px;">
-                        <div class="progress-bar bg-success" style="width: {{ min(100, ($stats['co2_reducido_total'] / 100) * 100) }}%" title="Progreso hacia 100kg CO₂"></div>
+                        <div class="progress-bar bg-success" style="width: {{ min(100, (abs($stats['co2_reducido_total']) / 100) * 100) }}%" title="Progreso hacia 100kg CO₂"></div>
                     </div>
                     <small class="text-muted">Meta: 100kg CO₂ reducidos</small>
                 </div>

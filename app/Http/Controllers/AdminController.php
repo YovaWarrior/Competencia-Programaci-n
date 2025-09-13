@@ -301,20 +301,34 @@ class AdminController extends Controller
         return back()->with('success', 'Estado de la bicicleta actualizado.');
     }
 
-    public function exportarReporte(Request $request, $tipo)
+    public function exportarReporte($tipo)
     {
-        $fechaInicio = $request->input('fecha_inicio', Carbon::now()->subMonth()->format('Y-m-d'));
-        $fechaFin = $request->input('fecha_fin', Carbon::now()->format('Y-m-d'));
+        $fechaInicio = request('fecha_inicio');
+        $fechaFin = request('fecha_fin');
+        
+        // Debug: Log para verificar datos
+        \Log::info('Exportando reporte', [
+            'tipo' => $tipo,
+            'fecha_inicio' => $fechaInicio,
+            'fecha_fin' => $fechaFin,
+            'request_all' => request()->all()
+        ]);
         
         switch ($tipo) {
             case 'usuarios':
-                return $this->exportarUsuarios();
+                return $this->exportarUsuariosPDF();
             case 'bicicletas':
-                return $this->exportarBicicletas();
+                return $this->exportarBicicletasPDF();
             case 'uso':
-                return $this->exportarUso($fechaInicio, $fechaFin);
+                return $this->exportarUsoPDF($fechaInicio, $fechaFin);
             case 'ingresos':
-                return $this->exportarIngresos($fechaInicio, $fechaFin);
+                return $this->exportarIngresosPDF($fechaInicio, $fechaFin);
+            case 'co2':
+                return $this->exportarCo2PDF($fechaInicio, $fechaFin);
+            case 'usuarios-activos':
+                return $this->exportarUsuariosActivosPDF();
+            case 'bicicletas-populares':
+                return $this->exportarBicicletasPopularesPDF();
             default:
                 abort(404);
         }
@@ -512,5 +526,152 @@ class AdminController extends Controller
         ];
 
         return view('admin.reportes.bicicletas-populares', compact('bicicletasPopulares', 'estadisticas'));
+    }
+
+    // Métodos de exportación PDF
+    private function exportarCo2PDF($fechaInicio, $fechaFin)
+    {
+        // Si no hay fechas, usar rango por defecto
+        if (!$fechaInicio) $fechaInicio = now()->subMonth()->format('Y-m-d');
+        if (!$fechaFin) $fechaFin = now()->format('Y-m-d');
+        
+        $query = UsoBicicleta::with(['user', 'bicicleta']);
+        
+        $query->whereBetween('fecha_hora_inicio', [$fechaInicio . ' 00:00:00', $fechaFin . ' 23:59:59']);
+        
+        if (request('usuario')) {
+            $query->whereHas('user', function($q) {
+                $q->where('nombre', 'like', '%' . request('usuario') . '%')
+                  ->orWhere('apellido', 'like', '%' . request('usuario') . '%');
+            });
+        }
+        
+        $reporteCo2 = $query->where('estado', 'completado')
+            ->where('co2_reducido', '>', 0)
+            ->orderBy('fecha_hora_inicio', 'desc')
+            ->get();
+
+        $html = view('admin.pdf.co2', compact('reporteCo2', 'fechaInicio', 'fechaFin'))->render();
+        return $this->generarPDF($html, 'reporte-co2.pdf');
+    }
+    private function exportarUsuariosPDF()
+    {
+        $usuarios = User::where('rol', 'usuario')
+            ->with('membresiaActiva.membresia')
+            ->withCount('usosBicicletas')
+            ->withSum('usosBicicletas', 'co2_reducido')
+            ->get();
+
+        $html = view('admin.pdf.usuarios', compact('usuarios'))->render();
+        return $this->generarPDF($html, 'catalogo-usuarios.pdf');
+    }
+
+    private function exportarBicicletasPDF()
+    {
+        $bicicletas = Bicicleta::with('estacionActual')
+            ->withCount('usosBicicletas')
+            ->get();
+
+        $html = view('admin.pdf.bicicletas', compact('bicicletas'))->render();
+        return $this->generarPDF($html, 'catalogo-bicicletas.pdf');
+    }
+
+    private function exportarUsoPDF($fechaInicio, $fechaFin)
+    {
+        // Si no hay fechas, usar rango por defecto
+        if (!$fechaInicio) $fechaInicio = now()->subMonth()->format('Y-m-d');
+        if (!$fechaFin) $fechaFin = now()->format('Y-m-d');
+        
+        $query = UsoBicicleta::with(['user', 'bicicleta', 'estacionInicio', 'estacionFin']);
+        
+        $query->whereBetween('fecha_hora_inicio', [$fechaInicio . ' 00:00:00', $fechaFin . ' 23:59:59']);
+        
+        if (request('usuario')) {
+            $query->whereHas('user', function($q) {
+                $q->where('nombre', 'like', '%' . request('usuario') . '%')
+                  ->orWhere('apellido', 'like', '%' . request('usuario') . '%')
+                  ->orWhere('email', 'like', '%' . request('usuario') . '%');
+            });
+        }
+        
+        $usos = $query->orderBy('fecha_hora_inicio', 'desc')->get();
+
+        $html = view('admin.pdf.uso', compact('usos', 'fechaInicio', 'fechaFin'))->render();
+        return $this->generarPDF($html, 'reporte-uso.pdf');
+    }
+
+    private function exportarIngresosPDF($fechaInicio, $fechaFin)
+    {
+        // Si no hay fechas, usar rango por defecto
+        if (!$fechaInicio) $fechaInicio = now()->subMonth()->format('Y-m-d');
+        if (!$fechaFin) $fechaFin = now()->format('Y-m-d');
+        
+        $query = UserMembresia::with(['user', 'membresia']);
+        
+        $query->whereBetween('fecha_inicio', [$fechaInicio . ' 00:00:00', $fechaFin . ' 23:59:59']);
+        
+        if (request('metodo_pago')) {
+            $query->where('metodo_pago', request('metodo_pago'));
+        }
+        
+        $ingresos = $query->where('estado_pago', 'pagado')
+            ->orderBy('fecha_inicio', 'desc')
+            ->get();
+
+        $html = view('admin.pdf.ingresos', compact('ingresos', 'fechaInicio', 'fechaFin'))->render();
+        return $this->generarPDF($html, 'reporte-ingresos.pdf');
+    }
+
+    private function exportarUsuariosActivosPDF()
+    {
+        $usuariosActivos = User::where('rol', 'usuario')
+            ->where('activo', true)
+            ->whereHas('membresiaActiva')
+            ->with('membresiaActiva.membresia')
+            ->withCount('usosBicicletas')
+            ->withSum('usosBicicletas', 'co2_reducido')
+            ->get();
+
+        $html = view('admin.pdf.usuarios-activos', compact('usuariosActivos'))->render();
+        return $this->generarPDF($html, 'usuarios-activos.pdf');
+    }
+
+    private function exportarBicicletasPopularesPDF()
+    {
+        $bicicletasPopulares = Bicicleta::with('estacionActual')
+            ->withCount([
+                'usosBicicletas as total_usos' => function($query) {
+                    $query->where('estado', 'completado');
+                }
+            ])
+            ->withSum('usosBicicletas', 'distancia_recorrida')
+            ->withAvg('usosBicicletas', 'calificacion')
+            ->having('total_usos', '>', 0)
+            ->orderBy('total_usos', 'desc')
+            ->get();
+
+        $html = view('admin.pdf.bicicletas-populares', compact('bicicletasPopulares'))->render();
+        return $this->generarPDF($html, 'bicicletas-populares.pdf');
+    }
+
+    private function generarPDF($html, $filename)
+    {
+        // Generar HTML optimizado para descarga directa
+        $headers = [
+            'Content-Type' => 'text/html; charset=utf-8',
+            'Content-Disposition' => 'attachment; filename="' . str_replace('.pdf', '.html', $filename) . '"',
+            'Cache-Control' => 'no-cache, no-store, must-revalidate',
+            'Pragma' => 'no-cache',
+            'Expires' => '0'
+        ];
+        
+        // Optimizar HTML para impresión como PDF
+        $optimizedHtml = str_replace(
+            '<style>',
+            '<style>@media print { body { -webkit-print-color-adjust: exact; } @page { margin: 1cm; } } ',
+            $html
+        );
+        
+        return response($optimizedHtml, 200, $headers);
     }
 }

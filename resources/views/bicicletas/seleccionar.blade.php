@@ -84,141 +84,147 @@
             </div>
         </div>
     @else
-        <!-- Bicicletas agrupadas por estación -->
-        @foreach($bicicletas as $nombreEstacion => $bicicletasEstacion)
-            <div class="row mb-5">
-                <div class="col-12">
-                    <!-- Encabezado de estación -->
-                    <div class="card border-primary mb-3">
-                        <div class="card-header bg-primary text-white">
-                            <div class="row align-items-center">
-                                <div class="col">
-                                    <h5 class="mb-0">
-                                        <i class="fas fa-map-marker-alt me-2"></i>
-                                        {{ $nombreEstacion }}
-                                    </h5>
-                                </div>
-                                <div class="col-auto">
-                                    <span class="badge bg-light text-dark">
-                                        {{ count($bicicletasEstacion) }} bicicleta{{ count($bicicletasEstacion) !== 1 ? 's' : '' }} disponible{{ count($bicicletasEstacion) !== 1 ? 's' : '' }}
-                                    </span>
+        <!-- Estaciones con bicicletas disponibles -->
+        @if($bicicletas->count() > 0)
+            @foreach($bicicletas as $nombreEstacion => $bicicletasEstacion)
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <!-- Encabezado de Estación -->
+                        <div class="card border-success shadow-sm mb-3">
+                            <div class="card-header bg-gradient text-white" 
+                                 style="background: linear-gradient(135deg, #28a745, #20c997);">
+                                <div class="row align-items-center">
+                                    <div class="col">
+                                        <h4 class="mb-1">
+                                            <i class="fas fa-map-marker-alt me-2"></i>
+                                            Estación: {{ $nombreEstacion }}
+                                        </h4>
+                                        <p class="mb-0 opacity-75">
+                                            <i class="fas fa-bicycle me-1"></i>
+                                            {{ count($bicicletasEstacion) }} bicicleta{{ count($bicicletasEstacion) !== 1 ? 's' : '' }} disponible{{ count($bicicletasEstacion) !== 1 ? 's' : '' }}
+                                            • Punto de salida para tu recorrido
+                                        </p>
+                                    </div>
+                                    <div class="col-auto">
+                                        <div class="badge bg-white text-success fs-6 px-3 py-2">
+                                            <i class="fas fa-bicycle me-1"></i>
+                                            {{ $nombreEstacion }} - {{ count($bicicletasEstacion) }} DISPONIBLES
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
 
-                    <!-- Grid de bicicletas -->
-                    <div class="row">
-                        @foreach($bicicletasEstacion as $bicicleta)
-                            <div class="col-lg-4 col-md-6 mb-4">
-                                <div class="card bicicleta-card h-100 border-0 shadow-sm">
-                                    <div class="card-body">
-                                        <!-- Tipo y código -->
-                                        <div class="d-flex justify-content-between align-items-start mb-3">
-                                            <div>
-                                                <h6 class="card-title mb-1">
-                                                    @if($bicicleta->tipo === 'tradicional')
-                                                        <i class="fas fa-bicycle text-success me-2"></i>
-                                                        Tradicional
-                                                    @else
-                                                        <i class="fas fa-bolt text-warning me-2"></i>
-                                                        Eléctrica
-                                                    @endif
-                                                </h6>
-                                                <small class="text-muted">{{ $bicicleta->codigo }}</small>
-                                            </div>
-                                            <span class="badge bg-{{ $bicicleta->tipo === 'tradicional' ? 'success' : 'warning' }}">
-                                                {{ $bicicleta->tipo === 'tradicional' ? '🚲' : '⚡' }}
-                                            </span>
-                                        </div>
-
-                                        <!-- Estado y batería -->
-                                        <div class="mb-3">
-                                            <div class="row">
-                                                <div class="col-6">
-                                                    <small class="text-muted">Estado:</small><br>
-                                                    <span class="badge bg-success">Disponible</span>
+                        <!-- Grid de bicicletas de esta estación -->
+                        <div class="row">
+                            @foreach($bicicletasEstacion as $bicicleta)
+                                <div class="col-lg-4 col-md-6 mb-4">
+                                    <div class="card bicicleta-card h-100 border-0 shadow-sm">
+                                        <div class="card-header bg-light border-0">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <div>
+                                                    <h6 class="mb-0">
+                                                        @if($bicicleta->tipo === 'tradicional')
+                                                            <i class="fas fa-bicycle text-success me-1"></i>
+                                                            Tradicional
+                                                        @else
+                                                            <i class="fas fa-bolt text-warning me-1"></i>
+                                                            Eléctrica
+                                                        @endif
+                                                    </h6>
+                                                    <small class="text-muted">{{ $bicicleta->codigo }}</small>
                                                 </div>
-                                                @if($bicicleta->tipo === 'electrica')
-                                                    <div class="col-6">
-                                                        <small class="text-muted">Batería:</small><br>
-                                                        <div class="d-flex align-items-center">
-                                                            <div class="progress flex-grow-1 me-2" style="height: 8px;">
-                                                                <div class="progress-bar bg-{{ $bicicleta->nivel_bateria >= 50 ? 'success' : ($bicicleta->nivel_bateria >= 20 ? 'warning' : 'danger') }}" 
-                                                                     style="width: {{ $bicicleta->nivel_bateria ?? 85 }}%"></div>
-                                                            </div>
-                                                            <small class="text-muted">{{ $bicicleta->nivel_bateria ?? 85 }}%</small>
-                                                        </div>
+                                                <span class="badge bg-success">DISPONIBLE</span>
+                                            </div>
+                                        </div>
+
+                                        <div class="card-body">
+                                            <!-- Información de la estación de salida -->
+                                            <div class="alert alert-info py-2 mb-3">
+                                                <small>
+                                                    <i class="fas fa-route me-1"></i>
+                                                    <strong>Salida desde:</strong> {{ $nombreEstacion }}
+                                                </small>
+                                            </div>
+
+                                            <!-- Batería para eléctricas -->
+                                            @if($bicicleta->tipo === 'electrica')
+                                                <div class="mb-3">
+                                                    <div class="d-flex align-items-center justify-content-between mb-1">
+                                                        <small class="text-muted">Nivel de batería:</small>
+                                                        <small class="fw-bold">{{ $bicicleta->nivel_bateria ?? 85 }}%</small>
                                                     </div>
-                                                @endif
+                                                    <div class="progress" style="height: 8px;">
+                                                        <div class="progress-bar bg-{{ $bicicleta->nivel_bateria >= 50 ? 'success' : ($bicicleta->nivel_bateria >= 20 ? 'warning' : 'danger') }}" 
+                                                             style="width: {{ $bicicleta->nivel_bateria ?? 85 }}%"></div>
+                                                    </div>
+                                                </div>
+                                            @endif
+
+                                            <!-- Características -->
+                                            <div class="mb-3">
+                                                <div class="d-flex flex-wrap gap-1">
+                                                    @if($bicicleta->tipo === 'tradicional')
+                                                        <span class="badge bg-light text-dark">
+                                                            <i class="fas fa-heart text-danger me-1"></i>Ejercicio
+                                                        </span>
+                                                        <span class="badge bg-light text-dark">
+                                                            <i class="fas fa-leaf text-success me-1"></i>Eco-friendly
+                                                        </span>
+                                                    @else
+                                                        <span class="badge bg-light text-dark">
+                                                            <i class="fas fa-zap text-warning me-1"></i>Asistencia eléctrica
+                                                        </span>
+                                                        <span class="badge bg-light text-dark">
+                                                            <i class="fas fa-mountain text-info me-1"></i>Mayor alcance
+                                                        </span>
+                                                    @endif
+                                                    <span class="badge bg-light text-dark">
+                                                        <i class="fas fa-lock text-primary me-1"></i>Segura
+                                                    </span>
+                                                </div>
+                                            </div>
+
+                                            <!-- Botón de selección -->
+                                            <div class="d-grid">
+                                                <form action="{{ route('bicicletas.usar', $bicicleta->id) }}" method="POST">
+                                                    @csrf
+                                                    <input type="hidden" name="estacion_inicio_id" value="{{ $bicicleta->estacion_actual_id }}">
+                                                    <button 
+                                                        type="submit"
+                                                        class="btn btn-{{ $bicicleta->tipo === 'tradicional' ? 'success' : 'warning' }} btn-lg"
+                                                    >
+                                                        <i class="fas fa-play me-2"></i>
+                                                        Usar {{ $bicicleta->codigo }}
+                                                    </button>
+                                                </form>
                                             </div>
                                         </div>
 
-                                        <!-- Características -->
-                                        <div class="mb-3">
-                                            <small class="text-muted d-block mb-1">Características:</small>
-                                            <div class="d-flex flex-wrap gap-1">
-                                                @if($bicicleta->tipo === 'tradicional')
-                                                    <span class="badge bg-light text-dark">
-                                                        <i class="fas fa-heart text-danger me-1"></i>Ejercicio
-                                                    </span>
-                                                    <span class="badge bg-light text-dark">
-                                                        <i class="fas fa-leaf text-success me-1"></i>Eco-friendly
-                                                    </span>
-                                                @else
-                                                    <span class="badge bg-light text-dark">
-                                                        <i class="fas fa-zap text-warning me-1"></i>Asistencia eléctrica
-                                                    </span>
-                                                    <span class="badge bg-light text-dark">
-                                                        <i class="fas fa-mountain text-info me-1"></i>Mayor alcance
-                                                    </span>
-                                                @endif
-                                                <span class="badge bg-light text-dark">
-                                                    <i class="fas fa-lock text-primary me-1"></i>Segura
-                                                </span>
-                                            </div>
-                                        </div>
-
-                                        <!-- Información adicional -->
-                                        <div class="mb-3">
-                                            <small class="text-muted">
-                                                <i class="fas fa-clock me-1"></i>
-                                                Última revisión: {{ $bicicleta->updated_at->diffForHumans() }}
-                                            </small>
-                                        </div>
-
-                                        <!-- Botón de selección -->
-                                        <div class="d-grid">
-                                            <button 
-                                                class="btn btn-{{ $bicicleta->tipo === 'tradicional' ? 'success' : 'warning' }} btn-lg"
-                                                onclick="EcoBici.usarBicicleta({{ $bicicleta->id }}, {{ $bicicleta->estacion_actual_id }})"
-                                            >
-                                                <i class="fas fa-play me-2"></i>
-                                                Iniciar Recorrido
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                    <!-- Footer con ubicación -->
-                                    <div class="card-footer bg-light border-0">
-                                        <div class="d-flex align-items-center justify-content-between">
+                                        <!-- Footer con ubicación -->
+                                        <div class="card-footer bg-light border-0">
                                             <small class="text-muted">
                                                 <i class="fas fa-map-marker-alt me-1"></i>
-                                                {{ Str::limit($bicicleta->estacionActual->direccion, 30) }}
+                                                {{ $bicicleta->estacionActual->direccion ?? 'Dirección no disponible' }}
                                             </small>
-                                            <a href="{{ route('estaciones.show', $bicicleta->estacion_actual_id) }}" 
-                                               class="btn btn-outline-primary btn-sm">
-                                                <i class="fas fa-info-circle"></i>
-                                            </a>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                        @endforeach
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+            @endforeach
+        @else
+            <div class="row">
+                <div class="col-12">
+                    <div class="alert alert-warning text-center">
+                        <h5><i class="fas fa-exclamation-triangle me-2"></i>No hay bicicletas disponibles</h5>
+                        <p class="mb-0">No se encontraron bicicletas disponibles para tu tipo de membresía en este momento.</p>
                     </div>
                 </div>
             </div>
-        @endforeach
+        @endif
     @endif
 
     <!-- Panel informativo -->
@@ -320,6 +326,18 @@
         font-size: 0.75rem;
     }
 
+    .cursor-pointer {
+        cursor: pointer;
+    }
+
+    .transition-transform {
+        transition: transform 0.3s ease;
+    }
+
+    .collapsed .transition-transform {
+        transform: rotate(180deg);
+    }
+
     @media (max-width: 768px) {
         .bicicleta-card:hover {
             transform: none;
@@ -347,9 +365,27 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 2000);
     }, 120000); // 2 minutos
 
-    // Animación de entrada para las tarjetas
-    const cards = document.querySelectorAll('.bicicleta-card');
-    cards.forEach((card, index) => {
+    // Manejar rotación de chevrones en collapse
+    document.querySelectorAll('[data-bs-toggle="collapse"]').forEach(function(element) {
+        element.addEventListener('click', function() {
+            const target = this.getAttribute('data-bs-target');
+            const chevron = this.querySelector('.transition-transform');
+            
+            // Toggle de la clase collapsed para rotar el chevron
+            setTimeout(() => {
+                const collapse = document.querySelector(target);
+                if (collapse.classList.contains('show')) {
+                    chevron.style.transform = 'rotate(180deg)';
+                } else {
+                    chevron.style.transform = 'rotate(0deg)';
+                }
+            }, 100);
+        });
+    });
+
+    // Animación de entrada para las tarjetas de estación
+    const stationCards = document.querySelectorAll('.card.border-success');
+    stationCards.forEach((card, index) => {
         card.style.opacity = '0';
         card.style.transform = 'translateY(20px)';
         
@@ -357,7 +393,7 @@ document.addEventListener('DOMContentLoaded', function() {
             card.style.transition = 'all 0.5s ease';
             card.style.opacity = '1';
             card.style.transform = 'translateY(0)';
-        }, index * 100);
+        }, index * 150);
     });
 });
 </script>

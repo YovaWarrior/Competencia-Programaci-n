@@ -126,9 +126,9 @@ class UsoBicicletaController extends Controller
                 'kilometraje_total' => $uso->bicicleta->kilometraje_total + $datosFinalizacion['distancia_recorrida'],
             ]);
 
-            // Actualizar usuario
-            Auth::user()->increment('puntos_verdes', $datosFinalizacion['puntos_verdes_ganados']);
-            Auth::user()->increment('co2_reducido_total', $datosFinalizacion['co2_reducido']);
+            // Actualizar usuario - asegurar valores positivos
+            Auth::user()->increment('puntos_verdes', abs($datosFinalizacion['puntos_verdes_ganados']));
+            Auth::user()->increment('co2_reducido_total', abs($datosFinalizacion['co2_reducido']));
 
             // Actualizar capacidad de estación de destino
             $estacionFin = Estacion::find($validated['estacion_fin_id']);

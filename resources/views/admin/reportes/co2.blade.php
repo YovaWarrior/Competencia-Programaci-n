@@ -17,9 +17,9 @@
             </nav>
         </div>
         <div class="btn-group">
-            <button class="btn btn-success" onclick="exportarExcel()">
-                <i class="fas fa-file-excel"></i> Exportar Excel
-            </button>
+            <a href="{{ route('admin.reportes.exportar', 'co2') }}?{{ http_build_query(request()->query()) }}" class="btn btn-danger">
+                <i class="fas fa-file-pdf"></i> Descargar PDF
+            </a>
             <button class="btn btn-info" onclick="window.print()">
                 <i class="fas fa-print"></i> Imprimir
             </button>

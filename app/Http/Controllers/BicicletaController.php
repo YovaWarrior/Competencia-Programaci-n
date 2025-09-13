@@ -37,7 +37,9 @@ class BicicletaController extends Controller
                 return $query->where('tipo', $tipoBicicleta);
             })
             ->get()
-            ->groupBy('estacion_actual.nombre');
+            ->groupBy(function($bicicleta) {
+                return $bicicleta->estacionActual ? $bicicleta->estacionActual->nombre : 'Sin Estación';
+            });
         
         return view('bicicletas.seleccionar', compact('bicicletas', 'tipoBicicleta'));
     }
@@ -120,14 +122,17 @@ class BicicletaController extends Controller
         $costoExtra = $minutosExtra * $membresia->tarifa_minuto_extra;
         
         // Estimación de CO2 reducido (0.23 kg CO2 por km, estimando 15 km/h promedio)
-        $distanciaEstimada = ($duracionMinutos / 60) * 15; // km
-        $co2Reducido = $distanciaEstimada * 0.23;
+        $distanciaEstimada = abs(($duracionMinutos / 60) * 15); // km
+        $co2Reducido = abs($distanciaEstimada * 0.23);
         
         // Puntos verdes (1 punto por cada 0.1 kg de CO2)
-        $puntosGanados = floor($co2Reducido * 10);
+        $puntosGanados = abs(floor($co2Reducido * 10));
         if ($uso->bicicleta->tipo === 'electrica') {
-            $puntosGanados = floor($puntosGanados * 1.5);
+            $puntosGanados = abs(floor($puntosGanados * 1.5));
         }
+        
+        // Asegurar que los puntos sean siempre positivos
+        $puntosGanados = max(1, $puntosGanados);
 
         // Actualizar uso
         $uso->update([

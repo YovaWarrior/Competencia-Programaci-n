@@ -120,6 +120,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/bicicleta/{bicicleta}/historial', [ReporteController::class, 'bicicletaHistorial'])->name('bicicleta-historial');
         Route::get('/exportar/{tipo}', [ReporteController::class, 'exportar'])->name('exportar');
     });
+    
+    // Recompensas
+    Route::prefix('recompensas')->name('recompensas.')->group(function () {
+        Route::get('/', [RecompensaController::class, 'index'])->name('index');
+        Route::post('/{recompensa}/canjear', [RecompensaController::class, 'canjear'])->name('canjear');
+        Route::get('/mis-canjes', [RecompensaController::class, 'misCanjes'])->name('mis-canjes');
+    });
 });
 
 /*

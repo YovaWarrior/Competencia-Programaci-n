@@ -45,7 +45,7 @@ abstract class Controller extends BaseController
     protected function calcularCO2($distanciaKm)
     {
         // 0.23 kg CO₂ por kilómetro (promedio auto vs bicicleta)
-        return round($distanciaKm * 0.23, 2);
+        return round(abs($distanciaKm) * 0.23, 2);
     }
 
     /**
@@ -53,16 +53,16 @@ abstract class Controller extends BaseController
      */
     protected function calcularPuntosVerdes($co2Reducido, $tipoBicicleta = 'tradicional')
     {
-        $puntos = floor($co2Reducido * 10); // 1 punto por cada 0.1 kg CO₂
+        $puntos = abs(floor($co2Reducido * 10)); // 1 punto por cada 0.1 kg CO₂
         
         // Multiplicador según tipo de bicicleta
         switch ($tipoBicicleta) {
             case 'electrica':
-                return floor($puntos * 1.5);
+                return max(1, abs(floor($puntos * 1.5)));
             case 'premium':
-                return $puntos * 2;
+                return max(1, abs($puntos * 2));
             default:
-                return $puntos;
+                return max(1, $puntos);
         }
     }
 

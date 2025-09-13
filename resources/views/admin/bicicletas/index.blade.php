@@ -264,8 +264,13 @@
 
             <!-- Paginación -->
             @if(isset($bicicletas) && $bicicletas->hasPages())
-            <div class="d-flex justify-content-center mt-4">
-                {{ $bicicletas->appends(request()->query())->links() }}
+            <div class="d-flex justify-content-between align-items-center mt-4">
+                <div class="text-muted">
+                    Mostrando {{ $bicicletas->firstItem() }} a {{ $bicicletas->lastItem() }} de {{ $bicicletas->total() }} resultados
+                </div>
+                <nav aria-label="Paginación de bicicletas">
+                    {{ $bicicletas->appends(request()->query())->links('pagination.custom') }}
+                </nav>
             </div>
             @endif
         </div>
