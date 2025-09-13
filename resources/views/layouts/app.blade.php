@@ -21,6 +21,9 @@
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
+    <!-- Vite Assets -->
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    
     <!-- Custom CSS -->
     <style>
         :root {
@@ -203,6 +206,52 @@
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Inicialización global de EcoBici -->
+    <script>
+        // Asegurar que EcoBici esté disponible globalmente
+        window.EcoBici = window.EcoBici || {};
+        
+        // Configuración global básica
+        window.EcoBici.config = window.EcoBici.config || {
+            mapCenter: [15.7278, -88.5944],
+            mapZoom: 13,
+            apiEndpoints: {
+                estaciones: '/api/estaciones',
+                mapaEstaciones: '/api/mapa/estaciones'
+            }
+        };
+        
+        // Funciones básicas si no están cargadas
+        window.EcoBici.mostrarNotificacion = window.EcoBici.mostrarNotificacion || function(mensaje, tipo = 'info', duracion = 5000) {
+            console.log(`${tipo.toUpperCase()}: ${mensaje}`);
+        };
+        
+        window.EcoBici.usarBicicleta = window.EcoBici.usarBicicleta || function(bicicletaId, estacionId) {
+            if (!bicicletaId || !estacionId) return;
+            
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = `/bicicletas/${bicicletaId}/usar`;
+            
+            const csrfInput = document.createElement('input');
+            csrfInput.type = 'hidden';
+            csrfInput.name = '_token';
+            csrfInput.value = document.querySelector('meta[name="csrf-token"]')?.content || '';
+            
+            const estacionInput = document.createElement('input');
+            estacionInput.type = 'hidden';
+            estacionInput.name = 'estacion_inicio_id';
+            estacionInput.value = estacionId;
+            
+            form.appendChild(csrfInput);
+            form.appendChild(estacionInput);
+            document.body.appendChild(form);
+            
+            this.mostrarNotificacion('Iniciando tu recorrido EcoBici...', 'info', 3000);
+            form.submit();
+        };
+    </script>
     
     @stack('scripts')
 </body>
