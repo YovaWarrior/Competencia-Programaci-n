@@ -158,21 +158,21 @@
                                 <span class="font-weight-bold text-primary">{{ number_format($bicicleta->total_usos) }}</span>
                             </td>
                             <td>
-                                <span class="text-info">{{ number_format($bicicleta->uso_bicicletas_sum_distancia_recorrida ?? 0, 1) }} km</span>
+                                <span class="text-info">{{ number_format($bicicleta->total_distancia ?? 0, 1) }} km</span>
                             </td>
                             <td>
-                                <span class="text-success">{{ number_format(($bicicleta->uso_bicicletas_sum_duracion_minutos ?? 0) / 60, 1) }} hrs</span>
+                                <span class="text-success">{{ number_format(($bicicleta->total_duracion ?? 0) / 60, 1) }} hrs</span>
                             </td>
                             <td>
-                                <span class="text-success">{{ number_format($bicicleta->uso_bicicletas_sum_co2_reducido ?? 0, 2) }} kg</span>
+                                <span class="text-success">{{ number_format($bicicleta->total_co2 ?? 0, 2) }} kg</span>
                             </td>
                             <td>
-                                @if($bicicleta->uso_bicicletas_avg_calificacion)
+                                @if($bicicleta->promedio_calificacion)
                                     <div class="d-flex align-items-center">
                                         @for($i = 1; $i <= 5; $i++)
-                                            <i class="fas fa-star {{ $i <= round($bicicleta->uso_bicicletas_avg_calificacion) ? 'text-warning' : 'text-muted' }}"></i>
+                                            <i class="fas fa-star {{ $i <= round($bicicleta->promedio_calificacion) ? 'text-warning' : 'text-muted' }}"></i>
                                         @endfor
-                                        <span class="ml-1 small">({{ number_format($bicicleta->uso_bicicletas_avg_calificacion, 1) }})</span>
+                                        <span class="ml-1 small">({{ number_format($bicicleta->promedio_calificacion, 1) }})</span>
                                     </div>
                                 @else
                                     <span class="text-muted">Sin calificar</span>

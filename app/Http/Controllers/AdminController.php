@@ -504,25 +504,68 @@ class AdminController extends Controller
 
     public function reporteBicicletasPopulares()
     {
-        $bicicletasPopulares = Bicicleta::with(['estacionActual'])
-            ->withCount([
-                'usosBicicletas as total_usos' => function($query) {
-                    $query->where('estado', 'completado');
-                }
+        // Obtener estadísticas usando consultas separadas para evitar conflictos
+        $bicicletasConUsos = \DB::table('uso_bicicletas')
+            ->select([
+                'bicicleta_id',
+                \DB::raw('COUNT(*) as total_usos'),
+                \DB::raw('SUM(duracion_minutos) as total_duracion'),
+                \DB::raw('SUM(distancia_recorrida) as total_distancia'),
+                \DB::raw('SUM(co2_reducido) as total_co2'),
+                \DB::raw('AVG(calificacion) as promedio_calificacion')
             ])
-            ->withSum('usosBicicletas', 'duracion_minutos')
-            ->withSum('usosBicicletas', 'distancia_recorrida')
-            ->withSum('usosBicicletas', 'co2_reducido')
-            ->withAvg('usosBicicletas', 'calificacion')
+            ->where('estado', 'completado')
+            ->groupBy('bicicleta_id')
             ->having('total_usos', '>', 0)
             ->orderBy('total_usos', 'desc')
-            ->paginate(20);
+            ->get()
+            ->keyBy('bicicleta_id');
+
+        // Obtener las bicicletas con sus relaciones
+        $bicicletaIds = $bicicletasConUsos->pluck('bicicleta_id')->toArray();
+        
+        if (empty($bicicletaIds)) {
+            $bicicletasPopulares = new \Illuminate\Pagination\LengthAwarePaginator(
+                collect(),
+                0,
+                20,
+                1,
+                ['path' => request()->url(), 'pageName' => 'page']
+            );
+        } else {
+            $bicicletas = Bicicleta::with(['estacionActual'])
+                ->whereIn('id', $bicicletaIds)
+                ->get()
+                ->map(function($bicicleta) use ($bicicletasConUsos) {
+                    $stats = $bicicletasConUsos->get($bicicleta->id);
+                    $bicicleta->total_usos = $stats->total_usos ?? 0;
+                    $bicicleta->total_duracion = $stats->total_duracion ?? 0;
+                    $bicicleta->total_distancia = $stats->total_distancia ?? 0;
+                    $bicicleta->total_co2 = $stats->total_co2 ?? 0;
+                    $bicicleta->promedio_calificacion = $stats->promedio_calificacion ?? null;
+                    return $bicicleta;
+                })
+                ->sortByDesc('total_usos');
+
+            // Paginar manualmente
+            $page = request()->get('page', 1);
+            $perPage = 20;
+            $offset = ($page - 1) * $perPage;
+            
+            $bicicletasPopulares = new \Illuminate\Pagination\LengthAwarePaginator(
+                $bicicletas->slice($offset, $perPage)->values(),
+                $bicicletas->count(),
+                $perPage,
+                $page,
+                ['path' => request()->url(), 'pageName' => 'page']
+            );
+        }
 
         $estadisticas = [
-            'total_bicicletas_usadas' => Bicicleta::whereHas('usosBicicletas')->count(),
-            'promedio_usos' => $bicicletasPopulares->avg('total_usos') ?? 0,
+            'total_bicicletas_usadas' => $bicicletasConUsos->count(),
+            'promedio_usos' => $bicicletasConUsos->avg('total_usos') ?? 0,
             'bicicleta_mas_popular' => $bicicletasPopulares->first(),
-            'total_distancia' => $bicicletasPopulares->sum('uso_bicicletas_sum_distancia_recorrida') ?? 0,
+            'total_distancia' => $bicicletasConUsos->sum('total_distancia') ?? 0,
         ];
 
         return view('admin.reportes.bicicletas-populares', compact('bicicletasPopulares', 'estadisticas'));
