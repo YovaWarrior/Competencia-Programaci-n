@@ -33,25 +33,9 @@
         box-shadow: 0 20px 40px rgba(37, 99, 235, 0.2);
     }
     
-    .membership-popular {
+    .membership-recommended {
         border-color: var(--ecobici-verde) !important;
-        position: relative;
-    }
-    
-    .membership-popular::after {
-        content: '¡MÁS POPULAR!';
-        position: absolute;
-        top: -10px;
-        right: 20px;
-        background: linear-gradient(45deg, var(--ecobici-verde), var(--ecobici-celeste));
-        color: white;
-        padding: 5px 15px;
-        border-radius: 20px;
-        font-size: 0.75rem;
-        font-weight: bold;
-        letter-spacing: 0.5px;
-        box-shadow: 0 4px 15px rgba(22, 163, 74, 0.3);
-        animation: pulse 2s infinite;
+        box-shadow: 0 10px 30px rgba(22, 163, 74, 0.15);
     }
     
     .price-display {
@@ -101,25 +85,17 @@
         color: white;
     }
     
-    .savings-badge {
+    .plan-value-badge {
         position: absolute;
-        top: -5px;
-        left: 50%;
-        transform: translateX(-50%);
-        background: linear-gradient(45deg, #ef4444, #f97316);
+        top: 15px;
+        right: 15px;
+        background: linear-gradient(45deg, var(--ecobici-verde), var(--ecobici-celeste));
         color: white;
-        padding: 8px 20px;
-        border-radius: 25px;
-        font-weight: bold;
-        font-size: 0.85rem;
-        box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
-        animation: bounce 2s infinite;
-    }
-    
-    @keyframes bounce {
-        0%, 20%, 50%, 80%, 100% { transform: translateX(-50%) translateY(0); }
-        40% { transform: translateX(-50%) translateY(-10px); }
-        60% { transform: translateX(-50%) translateY(-5px); }
+        padding: 6px 12px;
+        border-radius: 15px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        box-shadow: 0 4px 15px rgba(22, 163, 74, 0.25);
     }
     
     .comparison-table {
@@ -164,6 +140,13 @@
         from { box-shadow: 0 0 20px rgba(22, 163, 74, 0.2); }
         to { box-shadow: 0 0 30px rgba(22, 163, 74, 0.4); }
     }
+
+    .monthly-cost-info {
+        background: rgba(22, 163, 74, 0.1);
+        border-radius: 10px;
+        padding: 8px 12px;
+        margin-top: 8px;
+    }
 </style>
 @endpush
 
@@ -189,7 +172,7 @@
                                 </div>
                                 <div class="col">
                                     <h6 class="alert-heading mb-1">💡 ¿Sabías que...?</h6>
-                                    <p class="mb-0">Los planes anuales te ahorran hasta un <strong>20%</strong> y contribuyes más al medio ambiente</p>
+                                    <p class="mb-0">Los planes anuales te ofrecen mejor valor y contribuyes más al medio ambiente</p>
                                 </div>
                             </div>
                         </div>
@@ -296,23 +279,23 @@
             <div class="row justify-content-center">
                 @foreach($planes as $membresia)
                     <div class="col-lg-6 col-xl-5 mb-4">
-                        <div class="card membership-card h-100 {{ $membresia->duracion === 'anual' ? 'membership-popular' : '' }}">
+                        <div class="card membership-card h-100 {{ $membresia->duracion === 'anual' ? 'membership-recommended' : '' }}">
                             
                             <!-- Badge de tipo de bicicleta -->
                             <div class="bike-type-badge bike-{{ $tipo === 'ambas' ? 'premium' : $tipo }}">
                                 @if($tipo === 'tradicional')
-                                    🚲 Tradicional
+                                    🚲
                                 @elseif($tipo === 'electrica')
-                                    ⚡ Eléctrica
+                                    ⚡
                                 @else
-                                    👑 Premium
+                                    👑
                                 @endif
                             </div>
                             
-                            <!-- Badge de ahorro para planes anuales -->
+                            <!-- Badge de mejor valor para planes anuales -->
                             @if($membresia->duracion === 'anual')
-                                <div class="savings-badge">
-                                    💰 ¡Ahorra 20%!
+                                <div class="plan-value-badge">
+                                    Mejor
                                 </div>
                             @endif
                             
@@ -331,9 +314,11 @@
                                     <div class="text-muted">
                                         <small>por {{ $membresia->duracion === 'mensual' ? 'mes' : 'año' }}</small>
                                         @if($membresia->duracion === 'anual')
-                                            <div class="small text-success mt-1">
+                                            <div class="monthly-cost-info">
                                                 <i class="fas fa-calculator me-1"></i>
-                                                Solo Q{{ number_format($membresia->precio / 12, 0) }}/mes
+                                                <small class="text-success">
+                                                    <strong>Solo Q{{ number_format($membresia->precio / 12, 0) }} por mes</strong>
+                                                </small>
                                             </div>
                                         @endif
                                     </div>
@@ -382,7 +367,7 @@
                                         <a href="{{ route('membresias.pago', $membresia->id) }}" 
                                            class="btn {{ $membresia->duracion === 'anual' ? 'btn-success' : 'btn-primary' }} btn-lg">
                                             <i class="fas fa-credit-card me-2"></i>
-                                            Seleccionar {{ $membresia->duracion === 'anual' ? '🔥' : '' }}
+                                            Seleccionar Plan
                                         </a>
                                     @else
                                         <button class="btn btn-outline-secondary btn-lg" disabled>
